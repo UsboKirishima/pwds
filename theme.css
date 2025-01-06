@@ -1,0 +1,19 @@
+.window {
+  background-color: #191724;
+}
+
+button {
+  background: #1f1d2e;
+  color: #ffffffb6;
+  transition: 300ms;
+  border-radius: 0%;
+}
+
+button:hover {
+  background: #2a273f;
+  transition: 300ms;
+}
+
+sidebar {
+  
+}

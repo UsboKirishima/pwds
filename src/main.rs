@@ -1,12 +1,11 @@
-use aes_gcm::{
-    aead::{Aead, AeadCore, KeyInit, OsRng},
-    Aes256Gcm, Key, Nonce,
-};
-use std::fs;
 use std::fs::File;
 use std::io;
-use std::io::stdin;
 use std::io::Write;
+use gtk::prelude::*;
+use gtk::Application;
+
+mod pwds;
+mod gui;
 
 const ASCII_ART: &str = r###"
           # #### ####
@@ -25,60 +24,14 @@ const ASCII_ART: &str = r###"
                {
 "###;
 
-const DB_PATH: &str = "pwds.enc";
-
-fn is_db_file() -> bool {
-    match fs::metadata(DB_PATH) {
-        Ok(metadata) => metadata.is_file(),
-        Err(_) => false,
-    }
-}
-
-fn change_enc_key() -> String {
-    let mut new_key = String::new();
-
-    print!("[?] Insert new key: ");
-    Write::flush(&mut io::stdout()).expect("[-] Error during flush.");
-
-    stdin()
-        .read_line(&mut new_key)
-        .expect("[-] Error reading encryption key.");
-
-    new_key.trim().to_string()
-}
-
-fn encrypt(key_str: String, plaintext: String) -> String {
-    let key = Key::<Aes256Gcm>::from_slice(key_str.as_bytes());
-    let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
-    let cipher = Aes256Gcm::new(key);
-    let ciphered_data = cipher
-        .encrypt(&nonce, plaintext.as_bytes())
-        .expect("failed to encrypt");
-    // combining nonce and encrypted data together
-    // for storage purpose
-    let mut encrypted_data: Vec<u8> = nonce.to_vec();
-    encrypted_data.extend_from_slice(&ciphered_data);
-    hex::encode(encrypted_data)
-}
-
-fn decrypt(key_str: String, encrypted_data: String) -> String {
-    let encrypted_data = hex::decode(encrypted_data).expect("failed to decode hex string into vec");
-    let key = Key::<Aes256Gcm>::from_slice(key_str.as_bytes());
-    let (nonce_arr, ciphered_data) = encrypted_data.split_at(12);
-    let nonce = Nonce::from_slice(nonce_arr);
-    let cipher = Aes256Gcm::new(key);
-    let plaintext = cipher
-        .decrypt(nonce, ciphered_data)
-        .expect("failed to decrypt data");
-    String::from_utf8(plaintext).expect("failed to convert vector of bytes to string")
-}
+const APP_ID: &str = "org.gtk_rs.HelloWorld2";
 
 fn main() {
     println!("{ASCII_ART}");
     Write::flush(&mut io::stdout()).expect("[-] Error during flush.");
 
-    if !is_db_file() {
-        match File::create(DB_PATH) {
+    if !pwds::pwds::is_db_file() {
+        match File::create(pwds::pwds::DB_PATH) {
             Ok(mut file) => {
                 println!("[+] Database file created successfully.");
 
@@ -92,13 +45,21 @@ fn main() {
         }
     }
 
-    let encryption_key = change_enc_key();
+    // Run gui
+
+    let app = Application::builder().application_id(APP_ID).build();
+    app.connect_startup(|_| gui::gui::load_css());
+    app.connect_activate(gui::gui::build_ui);
+
+    app.run();
+
+
+    //let encryption_key = pwds::pwds::change_enc_key();
     
     // Testing
-    let enc = encrypt(encryption_key.clone(), "hello everyone".to_string());
-    let dec = decrypt(encryption_key.clone(), enc.clone());
-
-    if let Ok(mut file) = File::open(DB_PATH) {
-        file.write_all(dec.as_bytes()).expect("Error ");
-    }
+    //let enc = pwds::pwds::encrypt(encryption_key.clone(), "hello everyone".to_string());
+    //let dec = pwds::pwds::decrypt(encryption_key.clone(), enc.clone())
+    //if let Ok(mut file) = File::open(pwds::pwds::DB_PATH) {
+    //    file.write_all(dec.as_bytes()).expect("Error ");
+    //}
 }

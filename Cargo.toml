@@ -6,4 +6,5 @@ edition = "2021"
 [dependencies]
 aes-gcm = "0.10"
 aes-gcm-siv = "0.11.1"
+gtk = { version = "0.9.5", package = "gtk4", features = ["v4_16"] }
 hex = "0.4.3"
