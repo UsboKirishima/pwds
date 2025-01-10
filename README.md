@@ -1,21 +1,27 @@
 # pwds
 My custom-made Password Manager, written in just one day after learning Rust.
 
-```W
-          # #### ####
-        ### \/#|### |/####                > PWDS <
-       ##\/#/ \||/##/_/##/_#        Made by UsboKirishima
-     ###  \/###|/ \/ # ###        -------------------------
-   ##_\_#\_\## | #/###_/_####       1. Get all passwords
-  ## #### # \ #| /  #### ##/##      2. Add password
-   __#_--###`  |{,###---###-~       3. Edit password
-             \ }{         ---------------------------------
-              }}{           Database: ~/.pwds.enc
-              }}{           Default key: pwds
-         ejm  {{}W
-        , -=-~{ .-^- _
-              `}
-               {
-```
+## Technologies
+- Rust's standard library
+- Cargo
+- Gtk4
+- Glib
+- CSS3
+- aes_gcm
+
+## Todos
+- [x] Frontend
+- [x] Encryption lib
+- [ ] UI Errors
+- [ ] File w/r
+- [ ] Manage pwds
+
+
+## Screenshots
+
+![image1](/assets/image.png)
+![image2](/assets/image2.png)
+![image3](/assets/image3.png)
+![pwd](/assets/pwd.png)
 
 #### Made with <3 by UsboKirishima
