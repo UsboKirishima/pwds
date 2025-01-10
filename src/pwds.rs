@@ -17,7 +17,7 @@ pub mod pwds {
         }
     }
 
-    pub(crate) fn change_enc_key() -> String {
+    pub(crate) fn _change_enc_key() -> String {
         let mut new_key = String::new();
 
         print!("[?] Insert new key: ");

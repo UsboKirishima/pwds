@@ -6,7 +6,8 @@ button {
   background: #1f1d2e;
   color: #ffffffb6;
   transition: 300ms;
-  border-radius: 0%;
+  border-radius: 8px;
+  border: 1px solid #524f67;
 }
 
 button:hover {
@@ -14,6 +15,71 @@ button:hover {
   transition: 300ms;
 }
 
-sidebar {
-  
+entry {
+  border-radius: 8px;
+  background: #1f1d2e;
+  border: 1px solid #524f67;
+  color: #524f67;
+}
+
+entry:focus-visible {
+  background: #2a273f;
+  border: 1px solid #e0def4;
+  color: #e0def4;
+}
+
+.page {
+  background: #1f1d2e;
+  border-radius: 12px;
+}
+
+.mgr_button {
+  border-radius: 8px;
+  background: #1f1d2e;
+  border: 1px solid #524f67;
+  color: #524f67;
+}
+
+.mgr_button:hover {
+  border: 1px solid #e0def4;
+  color: #e0def4;
+}
+
+.title {
+  font-size: 2rem;
+  color: #e0def4;
+  font-weight: bolder;
+}
+
+.cred_card {
+  background: #26233a;
+  border-radius: 12px;
+  border: 1px solid #524f67;
+}
+
+.cred_username {
+  font-weight: bold;
+  color: #e0def4;
+}
+
+.cred_pwd {
+  color: #9ccfd8;
+}
+
+copy_pwd {
+  border-radius: 12px;
+  color: #9ccfd8;
+  border: 1px solid #524f67;
+  transition: 300ms;
+  font-size: small;
+}
+
+copy_pwd:hover {
+  background: #383355;
+  transition: 300ms;
+}
+
+.content {
+  color: #9ccfd8;
+  font-size: small;
 }
