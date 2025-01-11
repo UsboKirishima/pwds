@@ -21,6 +21,8 @@ pub mod gui {
             .title("pwds")
             .default_width(700)
             .default_height(350)
+            .resizable(true)
+            .modal(true)
             .build();
 
         /* Get password */
@@ -108,8 +110,10 @@ pub mod gui {
                         *current_view = Some(mgr_page);
                     }
                     "pwds" => {
+                        let scrolled_window = gtk::ScrolledWindow::new();
                         let pwds_page = pwds_page();
-                        content_area.append(&pwds_page);
+                        scrolled_window.set_child(Some(&pwds_page));
+                        content_area.append(&scrolled_window);
                         *current_view = Some(pwds_page);
                     }
                     "credits" => {
@@ -149,8 +153,8 @@ pub mod gui {
         page_title.set_margin_bottom(24);
 
         let spacer = gtk::Box::new(gtk::Orientation::Horizontal, 0);
-            spacer.set_vexpand(true);
-            manager_box.append(&spacer);
+        spacer.set_vexpand(true);
+        manager_box.append(&spacer);
 
         manager_box.set_margin_top(12);
         manager_box.set_margin_end(12);
@@ -211,8 +215,8 @@ pub mod gui {
         page_title.set_margin_bottom(24);
 
         let spacer = gtk::Box::new(gtk::Orientation::Horizontal, 0);
-            spacer.set_vexpand(true);
-            pwds_box.append(&spacer);
+        spacer.set_vexpand(true);
+        pwds_box.append(&spacer);
 
         pwds_box.set_margin_top(12);
         pwds_box.set_margin_end(12);
@@ -239,6 +243,31 @@ pub mod gui {
                 username: String::from("user3"),
                 password: String::from("password3"),
             },
+            Credentials {
+                username: String::from("user3"),
+                password: String::from("password3"),
+            },
+            Credentials {
+                username: String::from("user3"),
+                password: String::from("password3"),
+            },
+            Credentials {
+                username: String::from("user3"),
+                password: String::from("password3"),
+            },
+            Credentials {
+                username: String::from("user3"),
+                password: String::from("password3"),
+            },
+            Credentials {
+                username: String::from("user3"),
+                password: String::from("password3"),
+            },
+            Credentials {
+                username: String::from("user3"),
+                password: String::from("password3"),
+            },
+            
         ]));
 
         for cred in credentials.borrow().iter() {
@@ -320,8 +349,8 @@ pub mod gui {
         page_title.set_margin_bottom(24);
 
         let spacer = gtk::Box::new(gtk::Orientation::Vertical, 0);
-            spacer.set_vexpand(true);
-            credits_box.append(&spacer);
+        spacer.set_vexpand(true);
+        credits_box.append(&spacer);
 
         credits_box.set_margin_top(12);
         credits_box.set_margin_end(12);
@@ -330,9 +359,7 @@ pub mod gui {
 
         credits_box.append(&page_title);
 
-        let author_label = gtk::Label::new(Some(
-            "Made by UsboKirishima",
-        ));
+        let author_label = gtk::Label::new(Some("Made by UsboKirishima"));
         author_label.add_css_class("content");
         author_label.set_halign(gtk::Align::Start);
         author_label.set_valign(gtk::Align::End);
