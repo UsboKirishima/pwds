@@ -150,11 +150,12 @@ pub mod gui {
         page_title.set_css_classes(&["title"]);
         page_title.set_halign(gtk::Align::Center);
         page_title.set_valign(gtk::Align::Start);
-        page_title.set_margin_bottom(24);
+        page_title.set_margin_bottom(54);
 
-        let spacer = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+        let spacer = gtk::Box::new(gtk::Orientation::Vertical, 0);
+        spacer.set_hexpand(false);
         spacer.set_vexpand(true);
-        manager_box.append(&spacer);
+
 
         manager_box.set_margin_top(12);
         manager_box.set_margin_end(12);
@@ -187,13 +188,13 @@ pub mod gui {
         entries_box.set_hexpand(true);
         entries_box.set_vexpand(true);
         entries_box.set_margin_bottom(12);
-        entries_box.set_valign(gtk::Align::End);
+        entries_box.set_valign(gtk::Align::Start);
 
         manager_box.append(&page_title);
         manager_box.append(&entries_box);
         manager_box.append(&add_button);
         manager_box.append(&modify_button);
-        manager_box.append(&remove_button);
+        //manager_box.append(&remove_button);
 
         add_button.connect_clicked(|_| println!("Add Password"));
         modify_button.connect_clicked(|_| println!("Edit Password"));
@@ -267,7 +268,6 @@ pub mod gui {
                 username: String::from("user3"),
                 password: String::from("password3"),
             },
-            
         ]));
 
         for cred in credentials.borrow().iter() {

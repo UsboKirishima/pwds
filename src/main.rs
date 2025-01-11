@@ -6,18 +6,19 @@ use gtk::Application;
 
 mod pwds;
 mod gui;
+mod crypto;
 
 const ASCII_ART: &str = r###"
           # #### ####
         ### \/#|### |/####                > PWDS <
        ##\/#/ \||/##/_/##/_#        Made by UsboKirishima
      ###  \/###|/ \/ # ###        -------------------------
-   ##_\_#\_\## | #/###_/_####       1. Get all passwords
-  ## #### # \ #| /  #### ##/##      2. Add password
-   __#_--###`  |{,###---###-~       3. Edit password
+   ##_\_#\_\## | #/###_/_####        Simple pwds manager
+  ## #### # \ #| /  #### ##/##        pwds >>> password
+   __#_--###`  |{,###---###-~       
              \ }{         ---------------------------------
               }}{           Database: ~/.pwds.enc
-              }}{           Default key: pwds
+              }}{           Raccomended key: `openssl rand -hex 32`
          ejm  {{}
         , -=-~{ .-^- _
               `}
@@ -30,8 +31,8 @@ fn main() {
     println!("{ASCII_ART}");
     Write::flush(&mut io::stdout()).expect("[-] Error during flush.");
 
-    if !pwds::pwds::is_db_file() {
-        match File::create(pwds::pwds::DB_PATH) {
+    if !pwds::is_db_file() {
+        match File::create(pwds::DB_PATH) {
             Ok(mut file) => {
                 println!("[+] Database file created successfully.");
 
