@@ -1,13 +1,13 @@
 use crate::crypto::crypto::{Cipher, CryptoManager};
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::Path;
 
 pub const DB_PATH: &str = "pwds.enc";
 
 /// Sets the encryption key for the password manager.
-pub fn set_enc_key(key: String) {
-    let cipher = Cipher::new(&key);
+pub fn _set_enc_key(key: String) {
+    let _cipher = Cipher::new(&key);
 }
 
 /// Checks if the encrypted password database file exists.
@@ -38,7 +38,7 @@ pub fn save_password(username: &str, password: &str, key: &str) -> io::Result<()
     Ok(())
 }
 
-pub fn load_enc_passwords(key: &str) -> io::Result<Vec<(String, String)>> {
+pub fn load_enc_passwords(_key: &str) -> io::Result<Vec<(String, String)>> {
 
     if !is_db_file() {
         return Ok(vec![]);
@@ -95,7 +95,7 @@ pub fn load_passwords(key: &str) -> io::Result<Vec<(String, String)>> {
 
 /// Removes a password from the database file by username.
 pub fn remove_password(username: &str, key: &str) -> io::Result<()> {
-    let cipher = Cipher::new(key);
+    let _cipher = Cipher::new(key);
 
     let mut passwords = load_passwords(key)?;
     let mut enc_passwords = load_enc_passwords(key)?;
@@ -117,7 +117,7 @@ pub fn remove_password(username: &str, key: &str) -> io::Result<()> {
 pub fn modify_password(username: &str, new_password: &str, key: &str) -> io::Result<()> {
     let cipher = Cipher::new(key);
 
-    let mut passwords = load_passwords(key)?;
+    let mut _passwords = load_passwords(key)?;
     let mut enc_passwords = load_enc_passwords(key)?;
 
     for (user, pwd) in &mut enc_passwords {

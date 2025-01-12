@@ -1,6 +1,6 @@
 pub mod gui {
     use glib::clone;
-    use gtk::{gdk, prelude::*, Window};
+    use gtk::{gdk, prelude::*};
     use gtk::{Application, ApplicationWindow, Button, GestureClick, Image};
     use std::cell::RefCell;
     use std::rc::Rc;
@@ -349,8 +349,6 @@ pub mod gui {
             return pwds_box;
         }
 
-        let enc_key_clone = enc_key.clone();
-
         for creds in credentials.iter() {
             let enc_key_clone = enc_key.clone();
 
@@ -465,7 +463,7 @@ pub mod gui {
         pwds_box
     }
 
-    fn credits_page(enc_key: String) -> gtk::Box {
+    fn credits_page(_enc_key: String) -> gtk::Box {
         let credits_box = gtk::Box::new(gtk::Orientation::Vertical, 7);
         credits_box.set_hexpand(true);
         credits_box.set_vexpand(true);
