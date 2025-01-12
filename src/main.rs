@@ -17,7 +17,7 @@ const ASCII_ART: &str = r###"
   ## #### # \ #| /  #### ##/##        pwds >>> password
    __#_--###`  |{,###---###-~       
              \ }{         ---------------------------------
-              }}{           Database: ~/.pwds.enc
+              }}{           Database: pwds.enc
               }}{           Raccomended key: `openssl rand -hex 16`
          ejm  {{}
         , -=-~{ .-^- _
@@ -25,7 +25,7 @@ const ASCII_ART: &str = r###"
                {
 "###;
 
-const APP_ID: &str = "org.gtk_rs.HelloWorld2";
+const APP_ID: &str = "org.gtk_rs.pwds";
 
 fn main() {
     println!("{ASCII_ART}");
@@ -54,13 +54,4 @@ fn main() {
 
     app.run();
 
-
-    //let encryption_key = pwds::pwds::change_enc_key();
-    
-    // Testing
-    //let enc = pwds::pwds::encrypt(encryption_key.clone(), "hello everyone".to_string());
-    //let dec = pwds::pwds::decrypt(encryption_key.clone(), enc.clone())
-    //if let Ok(mut file) = File::open(pwds::pwds::DB_PATH) {
-    //    file.write_all(dec.as_bytes()).expect("Error ");
-    //}
 }

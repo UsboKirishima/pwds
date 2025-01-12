@@ -1,10 +1,11 @@
 pub mod gui {
-    use gtk::prelude::*;
+    use glib::clone;
+    use gtk::{gdk, prelude::*, Window};
     use gtk::{Application, ApplicationWindow, Button, GestureClick, Image};
     use std::cell::RefCell;
     use std::rc::Rc;
 
-    use crate::pwds::{load_passwords, save_password};
+    use crate::pwds::{load_passwords, modify_password, remove_password, save_password};
 
     pub fn load_css() {
         let provider = gtk::CssProvider::new();
@@ -15,6 +16,29 @@ pub mod gui {
             &provider,
             gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
         );
+    }
+
+    fn show_alert(win: &ApplicationWindow, title: &str, message: &str) {
+        let alert_dialog = gtk::AlertDialog::builder()
+            .message(title)
+            .detail(message)
+            .buttons(["OK"])
+            .modal(true)
+            .build();
+
+        alert_dialog.show(Some(win));
+    }
+
+    pub fn adjust_password_length(password: &str) -> String {
+        const MAX_LENGTH: usize = 32;
+
+        if password.len() > MAX_LENGTH {
+            password[0..MAX_LENGTH].to_string()
+        } else {
+            let mut adjusted = password.to_string();
+            adjusted.push_str(&"0".repeat(MAX_LENGTH - password.len()));
+            adjusted
+        }
     }
 
     pub fn build_ui(app: &Application) {
@@ -50,10 +74,19 @@ pub mod gui {
 
         let enc_key_clone = Rc::clone(&enc_key);
         get_pwd_button.connect_clicked(move |_| {
-            *enc_key_clone.borrow_mut() = get_pwd_entry.text().to_string();
+            *enc_key_clone.borrow_mut() = adjust_password_length(get_pwd_entry.text().as_str());
+
+            if get_pwd_entry.text().as_str().is_empty() {
+                show_alert(
+                    &window,
+                    "Encryption Key Error",
+                    "Invalid password provided.",
+                );
+                return;
+            }
+
             main_ui(&window, Rc::clone(&enc_key_clone));
         });
-
     }
 
     fn main_ui(window: &ApplicationWindow, enc_key: Rc<RefCell<String>>) {
@@ -65,7 +98,6 @@ pub mod gui {
             .margin_bottom(10)
             .orientation(gtk::Orientation::Horizontal)
             .build();
-
 
         // Menu box
         let sidebar = gtk::Box::builder()
@@ -89,6 +121,8 @@ pub mod gui {
          */
         let current_view = Rc::new(RefCell::new(None::<gtk::Box>));
 
+        let window_clone = window.clone();
+
         // Create the main content area
         let content_area = gtk::Box::new(gtk::Orientation::Vertical, 10);
         content_area.add_css_class("page");
@@ -96,7 +130,7 @@ pub mod gui {
         content_area.set_vexpand(true);
         main_box.append(&content_area);
 
-        let default_page = manager_page(enc_key.borrow().clone());
+        let default_page = manager_page(enc_key.borrow().clone(), window_clone.clone());
         content_area.append(&default_page);
         content_area.set_margin_start(12);
         content_area.set_margin_bottom(12);
@@ -112,6 +146,8 @@ pub mod gui {
 
             let enc_key_clone = enc_key.clone();
 
+            let window_clone = window_clone.clone();
+
             button.connect_clicked(move |btn| {
                 let content_area = &content_area_clone;
                 let mut current_view = current_view_clone.borrow_mut();
@@ -126,13 +162,13 @@ pub mod gui {
 
                 match btn.label().unwrap().as_str() {
                     "manager" => {
-                        let mgr_page = manager_page(enc_key.borrow().clone());
+                        let mgr_page = manager_page(enc_key.borrow().clone(), window_clone.clone());
                         content_area.append(&mgr_page);
                         *current_view = Some(mgr_page);
                     }
                     "pwds" => {
                         let scrolled_window = gtk::ScrolledWindow::new();
-                        let pwds_page = pwds_page(enc_key.borrow().clone());
+                        let pwds_page = pwds_page(enc_key.borrow().clone(), window_clone.clone());
                         scrolled_window.set_child(Some(&pwds_page));
                         content_area.append(&scrolled_window);
                         *current_view = Some(pwds_page);
@@ -143,7 +179,7 @@ pub mod gui {
                         *current_view = Some(crds_page);
                     }
                     _ => {
-                        let mgr_page = manager_page(enc_key.borrow().clone());
+                        let mgr_page = manager_page(enc_key.borrow().clone(), window_clone.clone());
                         content_area.append(&mgr_page);
                         *current_view = Some(mgr_page);
                     }
@@ -156,7 +192,7 @@ pub mod gui {
         window.set_child(Some(&main_box));
     }
 
-    fn manager_page(enc_key: String) -> gtk::Box {
+    fn manager_page(enc_key: String, window: ApplicationWindow) -> gtk::Box {
         let manager_box = gtk::Box::new(gtk::Orientation::Vertical, 7);
         manager_box.set_hexpand(true);
         manager_box.set_vexpand(true);
@@ -188,7 +224,6 @@ pub mod gui {
 
         let entries_box = gtk::Box::new(gtk::Orientation::Vertical, 7);
 
-        println!("Enc :: {}", enc_key.clone());
         let username_entry = gtk::Entry::builder()
             .css_name("entry")
             .placeholder_text("Username")
@@ -214,23 +249,68 @@ pub mod gui {
 
         let username_entry_clone = username_entry.clone();
         let password_entry_clone = password_entry.clone();
+        let window_clone = window.clone();
+        let enc_key_clone = enc_key.clone();
 
         add_button.connect_clicked(move |_| {
+            if username_entry_clone.text().as_str().is_empty()
+                || password_entry_clone.text().as_str().is_empty()
+            {
+                show_alert(
+                    &window_clone,
+                    "Error!",
+                    "Please fill in both username and password fields.",
+                );
+                return;
+            }
+
             save_password(
                 username_entry_clone.text().as_str(),
                 password_entry_clone.text().as_str(),
-                enc_key.as_str(),
+                enc_key_clone.as_str(),
             )
             .expect("ENCRYPTION ERROR!");
+
+            show_alert(
+                &window_clone,
+                "Success",
+                "Password successfully added to database.",
+            );
         });
 
-        modify_button.connect_clicked(|_| println!("Edit Password"));
-        remove_button.connect_clicked(|_| println!("Remove Password"));
+        let username_entry_clone = username_entry.clone();
+        let password_entry_clone = password_entry.clone();
+        let window_clone = window.clone();
+        let enc_key_clone = enc_key.clone();
+
+        modify_button.connect_clicked(move |_| {
+            if username_entry_clone.text().as_str().is_empty()
+                || password_entry_clone.text().as_str().is_empty()
+            {
+                show_alert(
+                    &window_clone,
+                    "Error!",
+                    "Please fill in both username and password fields.",
+                );
+                return;
+            }
+
+            if let Ok(_) = modify_password(
+                username_entry_clone.text().as_str(),
+                password_entry_clone.text().as_str(),
+                enc_key_clone.as_str(),
+            ) {
+                show_alert(&window_clone, "Success", "Password successfully modified.");
+            } else {
+                show_alert(&window_clone, "Error", "Error while modifying password.");
+            }
+
+        });
 
         manager_box
     }
 
-    fn pwds_page(enc_key: String) -> gtk::Box {
+    fn pwds_page(enc_key: String, window: ApplicationWindow) -> gtk::Box {
         let pwds_box = gtk::Box::new(gtk::Orientation::Vertical, 7);
         pwds_box.set_hexpand(true);
         pwds_box.set_vexpand(true);
@@ -260,15 +340,25 @@ pub mod gui {
 
         let credentials = load_passwords(&enc_key.as_str()).unwrap();
 
+        if credentials.is_empty() {
+            let no_pwds_label = gtk::Label::new(Some("No passwords stored."));
+            no_pwds_label.set_halign(gtk::Align::Center);
+            no_pwds_label.set_valign(gtk::Align::Center);
+            no_pwds_label.add_css_class("content");
+            pwds_box.append(&no_pwds_label);
+            return pwds_box;
+        }
+
+        let enc_key_clone = enc_key.clone();
 
         for creds in credentials.iter() {
+            let enc_key_clone = enc_key.clone();
 
             let cred = Credentials {
                 username: creds.0.clone(),
                 password: creds.1.clone(),
             };
 
-            
             let pwds_box_clone = pwds_box.clone();
 
             let cred_box = gtk::Box::new(gtk::Orientation::Horizontal, 14);
@@ -324,9 +414,50 @@ pub mod gui {
             cred_copy_pwd.set_size_request(40, 12);
             cred_copy_pwd.set_margin_bottom(7);
             cred_copy_pwd.set_margin_top(7);
-            cred_copy_pwd.set_margin_end(12);
+
+            let cred_password_clone = cred.password.clone();
+
+            cred_copy_pwd.connect_clicked(clone!(
+                #[weak]
+                window,
+                move |_| {
+                    let display = gdk::Display::default().unwrap();
+                    let clipboard = display.clipboard();
+
+                    clipboard.set_text(&cred_password_clone);
+                    show_alert(
+                        &window,
+                        "Success!",
+                        "Password successfully copied to clipboard.",
+                    );
+                }
+            ));
 
             cred_box.append(&cred_copy_pwd);
+
+            let cred_del_pwd = gtk::Button::builder()
+                .label("-")
+                .css_name("del_pwd")
+                .build();
+            cred_del_pwd.set_size_request(30, 12);
+            cred_del_pwd.set_margin_bottom(7);
+            cred_del_pwd.set_margin_top(7);
+            cred_del_pwd.set_margin_end(12);
+
+            cred_box.append(&cred_del_pwd);
+
+            let cred_username_to_del = cred_username.label().clone();
+            let window_clone = window.clone();
+
+            cred_del_pwd.connect_clicked(move |_| {
+                if let Ok(_) =
+                    remove_password(&cred_username_to_del.as_str(), enc_key_clone.as_str())
+                {
+                    show_alert(&window_clone, "Success", "Successfully remove password.");
+                } else {
+                    show_alert(&window_clone, "Error", "Failed to remove password.");
+                }
+            });
 
             pwds_box_clone.append(&cred_box);
         }

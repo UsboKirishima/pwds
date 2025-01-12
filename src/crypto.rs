@@ -6,8 +6,8 @@ pub mod crypto {
 
     pub trait CryptoManager {
         fn encrypt(&self, plaintext: String) -> String;
-        fn decrypt(&self, encrypted_data: String) -> String;
-        fn generate_key(base_key: &str) -> String;
+        fn decrypt(&self, encrypted_data: String) -> Result<String, String>;
+        fn _generate_key(base_key: &str) -> String;
     }
 
     pub struct Cipher {
@@ -23,7 +23,6 @@ pub mod crypto {
 
     impl CryptoManager for Cipher {
         fn encrypt(&self, plaintext: String) -> String {
-
             //println!("{}", &plaintext);
 
             let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
@@ -36,11 +35,11 @@ pub mod crypto {
             hex::encode(encrypted_data)
         }
 
-        fn decrypt(&self, encrypted_data: String) -> String {
+        fn decrypt(&self, encrypted_data: String) -> Result<String, String> {
             let encrypted_data =
                 hex::decode(encrypted_data).expect("Failed to decode hex string into vec");
 
-            let nonce_len = 12; 
+            let nonce_len = 12;
             if encrypted_data.len() < nonce_len {
                 panic!(
                     "Data length too short: expected at least {}, got {}",
@@ -51,13 +50,17 @@ pub mod crypto {
             let (nonce_arr, ciphered_data) = encrypted_data.split_at(nonce_len);
             let nonce = Nonce::from_slice(nonce_arr);
             let cipher = Aes256Gcm::new(&self.key);
-            let plaintext = cipher
-                .decrypt(nonce, ciphered_data)
-                .expect("Failed to decrypt data");
-            String::from_utf8(plaintext).expect("Failed to convert vector of bytes to string")
+            cipher
+            .decrypt(nonce, ciphered_data)
+                .map_err(|e| format!("Failed to decrypt data: {}", e))
+                .and_then(|plaintext| {
+                    String::from_utf8(plaintext)
+                        .map_err(|e| format!("Failed to convert bytes to string: {}", e))
+
+                })
         }
 
-        fn generate_key(base_key: &str) -> String {
+        fn _generate_key(base_key: &str) -> String {
             let mut key = [0u8; 32];
             let base_bytes = base_key.as_bytes();
             key[..base_bytes.len()].copy_from_slice(base_bytes);

@@ -79,7 +79,54 @@ copy_pwd:hover {
   transition: 300ms;
 }
 
+del_pwd {
+  border-radius: 12px;
+  color: #9ccfd8;
+  border: 1px solid #ca1625;
+  background: #ff182b59;
+  transition: 300ms;
+  font-size: small;
+}
+
+del_pwd:hover {
+  background: #ff182b36;
+  transition: 300ms;
+}
+
+
 .content {
   color: #9ccfd8;
   font-size: small;
+}
+
+.dialog {
+  background-color: #191724;
+  color: #9ccfd8;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #393552;
+}
+
+.dialog .title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.dialog .detail {
+  font-size: 14px;
+  margin-top: 10px;
+  color: #6c757d;
+}
+
+.dialog button {
+  background-color: #3e8fb0;
+  border-radius: 5px;
+  padding: 10px;
+  color: #e0def4;
+  font-weight: bold;
+}
+
+.dialog button:hover {
+  background-color: #403d52; 
 }
