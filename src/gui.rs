@@ -4,6 +4,8 @@ pub mod gui {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use crate::pwds::{load_passwords, save_password};
+
     pub fn load_css() {
         let provider = gtk::CssProvider::new();
         provider.load_from_string(include_str!("../theme.css"));
@@ -34,6 +36,8 @@ pub mod gui {
         let get_pwd_button = gtk::Button::with_label("Get Password");
         get_pwd_button.add_css_class("mgr_button");
 
+        let enc_key = Rc::new(RefCell::new(String::new()));
+
         get_pwd_box.append(&get_pwd_entry);
         get_pwd_box.append(&get_pwd_button);
 
@@ -41,7 +45,18 @@ pub mod gui {
         get_pwd_box.set_halign(gtk::Align::Center);
 
         window.set_child(Some(&get_pwd_box));
+        window.add_css_class("window");
+        window.present();
 
+        let enc_key_clone = Rc::clone(&enc_key);
+        get_pwd_button.connect_clicked(move |_| {
+            *enc_key_clone.borrow_mut() = get_pwd_entry.text().to_string();
+            main_ui(&window, Rc::clone(&enc_key_clone));
+        });
+
+    }
+
+    fn main_ui(window: &ApplicationWindow, enc_key: Rc<RefCell<String>>) {
         // Main box
         let main_box = gtk::Box::builder()
             .margin_start(10)
@@ -50,6 +65,7 @@ pub mod gui {
             .margin_bottom(10)
             .orientation(gtk::Orientation::Horizontal)
             .build();
+
 
         // Menu box
         let sidebar = gtk::Box::builder()
@@ -80,7 +96,7 @@ pub mod gui {
         content_area.set_vexpand(true);
         main_box.append(&content_area);
 
-        let default_page = manager_page();
+        let default_page = manager_page(enc_key.borrow().clone());
         content_area.append(&default_page);
         content_area.set_margin_start(12);
         content_area.set_margin_bottom(12);
@@ -94,9 +110,14 @@ pub mod gui {
             let content_area_clone = content_area.clone();
             let current_view_clone = Rc::clone(&current_view);
 
+            let enc_key_clone = enc_key.clone();
+
             button.connect_clicked(move |btn| {
                 let content_area = &content_area_clone;
                 let mut current_view = current_view_clone.borrow_mut();
+
+                let enc_key = &enc_key_clone;
+                //println!("{}", enc_key);
 
                 /* Clean up previous view */
                 while let Some(child) = content_area.last_child() {
@@ -105,24 +126,24 @@ pub mod gui {
 
                 match btn.label().unwrap().as_str() {
                     "manager" => {
-                        let mgr_page = manager_page();
+                        let mgr_page = manager_page(enc_key.borrow().clone());
                         content_area.append(&mgr_page);
                         *current_view = Some(mgr_page);
                     }
                     "pwds" => {
                         let scrolled_window = gtk::ScrolledWindow::new();
-                        let pwds_page = pwds_page();
+                        let pwds_page = pwds_page(enc_key.borrow().clone());
                         scrolled_window.set_child(Some(&pwds_page));
                         content_area.append(&scrolled_window);
                         *current_view = Some(pwds_page);
                     }
                     "credits" => {
-                        let crds_page = credits_page();
+                        let crds_page = credits_page(enc_key.borrow().clone());
                         content_area.append(&crds_page);
                         *current_view = Some(crds_page);
                     }
                     _ => {
-                        let mgr_page = manager_page();
+                        let mgr_page = manager_page(enc_key.borrow().clone());
                         content_area.append(&mgr_page);
                         *current_view = Some(mgr_page);
                     }
@@ -132,15 +153,10 @@ pub mod gui {
             sidebar.append(&button);
         }
 
-        window.add_css_class("window");
-        window.present();
-
-        get_pwd_button.connect_clicked(move |_| {
-            window.set_child(Some(&main_box));
-        });
+        window.set_child(Some(&main_box));
     }
 
-    fn manager_page() -> gtk::Box {
+    fn manager_page(enc_key: String) -> gtk::Box {
         let manager_box = gtk::Box::new(gtk::Orientation::Vertical, 7);
         manager_box.set_hexpand(true);
         manager_box.set_vexpand(true);
@@ -155,7 +171,6 @@ pub mod gui {
         let spacer = gtk::Box::new(gtk::Orientation::Vertical, 0);
         spacer.set_hexpand(false);
         spacer.set_vexpand(true);
-
 
         manager_box.set_margin_top(12);
         manager_box.set_margin_end(12);
@@ -173,6 +188,7 @@ pub mod gui {
 
         let entries_box = gtk::Box::new(gtk::Orientation::Vertical, 7);
 
+        println!("Enc :: {}", enc_key.clone());
         let username_entry = gtk::Entry::builder()
             .css_name("entry")
             .placeholder_text("Username")
@@ -196,14 +212,25 @@ pub mod gui {
         manager_box.append(&modify_button);
         //manager_box.append(&remove_button);
 
-        add_button.connect_clicked(|_| println!("Add Password"));
+        let username_entry_clone = username_entry.clone();
+        let password_entry_clone = password_entry.clone();
+
+        add_button.connect_clicked(move |_| {
+            save_password(
+                username_entry_clone.text().as_str(),
+                password_entry_clone.text().as_str(),
+                enc_key.as_str(),
+            )
+            .expect("ENCRYPTION ERROR!");
+        });
+
         modify_button.connect_clicked(|_| println!("Edit Password"));
         remove_button.connect_clicked(|_| println!("Remove Password"));
 
         manager_box
     }
 
-    fn pwds_page() -> gtk::Box {
+    fn pwds_page(enc_key: String) -> gtk::Box {
         let pwds_box = gtk::Box::new(gtk::Orientation::Vertical, 7);
         pwds_box.set_hexpand(true);
         pwds_box.set_vexpand(true);
@@ -231,46 +258,17 @@ pub mod gui {
             password: String,
         }
 
-        let credentials = Rc::new(RefCell::new(vec![
-            Credentials {
-                username: String::from("user1"),
-                password: String::from("password1"),
-            },
-            Credentials {
-                username: String::from("user2"),
-                password: String::from("password2"),
-            },
-            Credentials {
-                username: String::from("user3"),
-                password: String::from("password3"),
-            },
-            Credentials {
-                username: String::from("user3"),
-                password: String::from("password3"),
-            },
-            Credentials {
-                username: String::from("user3"),
-                password: String::from("password3"),
-            },
-            Credentials {
-                username: String::from("user3"),
-                password: String::from("password3"),
-            },
-            Credentials {
-                username: String::from("user3"),
-                password: String::from("password3"),
-            },
-            Credentials {
-                username: String::from("user3"),
-                password: String::from("password3"),
-            },
-            Credentials {
-                username: String::from("user3"),
-                password: String::from("password3"),
-            },
-        ]));
+        let credentials = load_passwords(&enc_key.as_str()).unwrap();
 
-        for cred in credentials.borrow().iter() {
+
+        for creds in credentials.iter() {
+
+            let cred = Credentials {
+                username: creds.0.clone(),
+                password: creds.1.clone(),
+            };
+
+            
             let pwds_box_clone = pwds_box.clone();
 
             let cred_box = gtk::Box::new(gtk::Orientation::Horizontal, 14);
@@ -336,7 +334,7 @@ pub mod gui {
         pwds_box
     }
 
-    fn credits_page() -> gtk::Box {
+    fn credits_page(enc_key: String) -> gtk::Box {
         let credits_box = gtk::Box::new(gtk::Orientation::Vertical, 7);
         credits_box.set_hexpand(true);
         credits_box.set_vexpand(true);

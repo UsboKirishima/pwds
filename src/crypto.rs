@@ -16,14 +16,16 @@ pub mod crypto {
 
     impl Cipher {
         pub fn new(base_key: &str) -> Self {
-            let key_str = Cipher::generate_key(base_key);
-            let key = Key::<Aes256Gcm>::from_slice(key_str.as_bytes());
-            Self { key: *key }
+            let key = Key::<Aes256Gcm>::from_slice(base_key.as_bytes());
+            Self { key: key.clone() }
         }
     }
 
     impl CryptoManager for Cipher {
         fn encrypt(&self, plaintext: String) -> String {
+
+            //println!("{}", &plaintext);
+
             let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
             let cipher = Aes256Gcm::new(&self.key);
             let ciphered_data = cipher
@@ -37,7 +39,16 @@ pub mod crypto {
         fn decrypt(&self, encrypted_data: String) -> String {
             let encrypted_data =
                 hex::decode(encrypted_data).expect("Failed to decode hex string into vec");
-            let (nonce_arr, ciphered_data) = encrypted_data.split_at(12);
+
+            let nonce_len = 12; 
+            if encrypted_data.len() < nonce_len {
+                panic!(
+                    "Data length too short: expected at least {}, got {}",
+                    nonce_len,
+                    encrypted_data.len()
+                );
+            }
+            let (nonce_arr, ciphered_data) = encrypted_data.split_at(nonce_len);
             let nonce = Nonce::from_slice(nonce_arr);
             let cipher = Aes256Gcm::new(&self.key);
             let plaintext = cipher

@@ -18,7 +18,7 @@ const ASCII_ART: &str = r###"
    __#_--###`  |{,###---###-~       
              \ }{         ---------------------------------
               }}{           Database: ~/.pwds.enc
-              }}{           Raccomended key: `openssl rand -hex 32`
+              }}{           Raccomended key: `openssl rand -hex 16`
          ejm  {{}
         , -=-~{ .-^- _
               `}
