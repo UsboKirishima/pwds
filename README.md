@@ -1,11 +1,10 @@
 # pwds
-My custom-made Password Manager, written in just one day after learning Rust.
-
-This software utilizes Advanced Encryption Standard (AES) cryptography to securely save data to a database file.
-
-A password manager built with Rust, utilizing GTK4 for an intuitive and modern graphical interface.
 
 ![image](/assets/image2.png)
+
+My custom-made Password Manager, written in just one day after learning Rust.
+This software utilizes Advanced Encryption Standard (AES) cryptography to securely save data to a database file.
+Built with Rust, utilizing GTK4 for an intuitive and modern graphical interface.
 
 ## Todos
 - [x] Frontend
