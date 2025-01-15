@@ -2,6 +2,8 @@ pub mod gui {
     use glib::clone;
     use gtk::{gdk, prelude::*};
     use gtk::{Application, ApplicationWindow, Button, GestureClick, Image};
+    use rand::distributions::Alphanumeric;
+    use rand::Rng;
     use std::cell::RefCell;
     use std::rc::Rc;
 
@@ -39,6 +41,18 @@ pub mod gui {
             adjusted.push_str(&"0".repeat(MAX_LENGTH - password.len()));
             adjusted
         }
+    }
+
+    pub fn gen_pwd() -> Result<String, &'static str> {
+        const LENGTH: usize = 14;
+
+        let mut rng = rand::thread_rng();
+        let pwd = std::iter::repeat_with(|| rng.sample(Alphanumeric))
+            .map(char::from)
+            .take(LENGTH)
+            .collect();
+
+        Ok(pwd)
     }
 
     pub fn build_ui(app: &Application) {
@@ -229,13 +243,43 @@ pub mod gui {
             .placeholder_text("Username")
             .build();
 
+        let password_box = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+        password_box.set_hexpand(true);
+
         let password_entry = gtk::Entry::builder()
             .css_name("entry")
             .placeholder_text("Password")
+            .hexpand(true)
             .build();
 
+        let gen_icon = Image::from_file("icons/gen_.png");
+        gen_icon.set_size_request(22, 22);
+
+        let password_generate = gtk::Button::builder()
+            .label("gen")
+            .width_request(24)
+            .margin_start(7)
+            .halign(gtk::Align::End)
+            .build();
+        password_generate.set_child(Some(&gen_icon));
+
+        let passowrd_entry_clone = password_entry.clone();
+        let window_clone = window.clone();
+
+        password_generate.connect_clicked(move |_| match gen_pwd() {
+            Ok(pwd) => passowrd_entry_clone.set_text(&pwd),
+            Err(_) => show_alert(
+                &window_clone,
+                "Error",
+                "Error while generating the password.",
+            ),
+        });
+
+        password_box.append(&password_entry);
+        password_box.append(&password_generate);
+
         entries_box.append(&username_entry);
-        entries_box.append(&password_entry);
+        entries_box.append(&password_box);
         entries_box.set_hexpand(true);
         entries_box.set_vexpand(true);
         entries_box.set_margin_bottom(12);
@@ -304,7 +348,6 @@ pub mod gui {
             } else {
                 show_alert(&window_clone, "Error", "Error while modifying password.");
             }
-
         });
 
         manager_box
@@ -359,7 +402,7 @@ pub mod gui {
 
             let pwds_box_clone = pwds_box.clone();
 
-            let cred_box = gtk::Box::new(gtk::Orientation::Horizontal, 14);
+            let cred_box = gtk::Box::new(gtk::Orientation::Horizontal, 7);
             //cred_box.set_hexpand(true);
             //cred_box.set_vexpand(true);
             //cred_box.set_valign(gtk::Align::Start);
@@ -381,7 +424,7 @@ pub mod gui {
             spacer.set_hexpand(true);
             cred_box.append(&spacer);
 
-            let cred_pwd = gtk::Label::new(Some("unhide"));
+            let cred_pwd = gtk::Label::new(Some("show"));
             cred_pwd.add_css_class("cred_pwd");
             cred_pwd.set_margin_bottom(12);
             cred_pwd.set_margin_top(12);
@@ -394,22 +437,26 @@ pub mod gui {
             let cred_password_clone = cred.password.clone();
 
             gesture.connect_pressed(move |_, _, _, _| match cred_pwd_clone.text().as_str() {
-                "unhide" => {
+                "show" => {
                     cred_pwd_clone.set_text(&cred_password_clone);
                 }
                 _ => {
-                    cred_pwd_clone.set_text("unhide");
+                    cred_pwd_clone.set_text("show");
                 }
             });
 
             cred_box.append(&cred_pwd);
             cred_pwd.add_controller(gesture);
 
+            let copy_pwd_icon = Image::from_file("icons/copy.png");
+            copy_pwd_icon.set_size_request(16, 16);
+
             let cred_copy_pwd = gtk::Button::builder()
                 .label("copy")
-                .css_name("copy_pwd")
+                //.css_name("copy_pwd")
                 .build();
-            cred_copy_pwd.set_size_request(40, 12);
+            cred_copy_pwd.set_child(Some(&copy_pwd_icon));
+            //cred_copy_pwd.set_size_request(30, 12);
             cred_copy_pwd.set_margin_bottom(7);
             cred_copy_pwd.set_margin_top(7);
 
@@ -433,11 +480,15 @@ pub mod gui {
 
             cred_box.append(&cred_copy_pwd);
 
+            let del_pwd_icon = Image::from_file("icons/remove.png");
+            del_pwd_icon.set_size_request(16, 16);
+
             let cred_del_pwd = gtk::Button::builder()
                 .label("-")
-                .css_name("del_pwd")
+                //.css_name("del_pwd")
                 .build();
-            cred_del_pwd.set_size_request(30, 12);
+            cred_del_pwd.set_child(Some(&del_pwd_icon));
+            //cred_del_pwd.set_size_request(30, 12);
             cred_del_pwd.set_margin_bottom(7);
             cred_del_pwd.set_margin_top(7);
             cred_del_pwd.set_margin_end(12);

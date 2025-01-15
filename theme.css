@@ -18,7 +18,7 @@ button:hover {
 entry {
   border-radius: 8px;
   background: #1f1d2e;
-  border: 1px solid #524f67;
+  border: 1px solid #686481;
   color: #524f67;
 }
 
@@ -93,6 +93,16 @@ del_pwd:hover {
   transition: 300ms;
 }
 
+del_pwd img {
+  transition: 500ms;
+}
+
+
+del_pwd img:hover {
+  transition: 500ms;
+  opacity: 75%;
+}
+
 
 .content {
   color: #9ccfd8;
@@ -129,4 +139,16 @@ del_pwd:hover {
 
 .dialog button:hover {
   background-color: #403d52; 
+}
+
+gen_pwd {
+  border-radius: 8px;
+  color: #9ccfd8;
+  border: 1px solid #524f67;
+  transition: 300ms;
+}
+
+gen_pwd:hover {
+  background: #383355;
+  transition: 300ms;
 }

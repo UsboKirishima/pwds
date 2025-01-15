@@ -9,3 +9,4 @@ aes-gcm-siv = "0.11.1"
 gtk = { version = "0.9.5", package = "gtk4", features = ["v4_16"] }
 hex = "0.4.3"
 glib = "0.20.7"
+rand = "0.8.5"
