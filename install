@@ -1,0 +1,17 @@
+#!/usr/bin/bash
+if [ "$(id -u)" != "0" ]; then
+   echo "This installation script must be executed with root privileges."
+   exit 1
+fi
+echo "Installing... Please wait."
+echo -ne "Copying icons... \r"
+
+
+
+echo -ne "Loading...##\r"
+sleep 1
+echo -ne "Loading...####\r"
+sleep 1
+
+
+current_directory=$(pwd)
